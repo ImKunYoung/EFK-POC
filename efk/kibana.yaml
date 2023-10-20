@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: elastic
+  labels:
+    app: kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: elastic/kibana:7.17.10
+        env:
+        - name: SERVER_NAME
+          value: kibana.kubenetes.example.com
+        - name: ELASTICSEARCH_HOSTS
+          value: http://elasticsearch-svc:9200
+        - name: ELASTICSEARCH_USERNAME
+          value: your-elasticsearch-username
+        - name: ELASTICSEARCH_PASSWORD
+          value: your-elasticsearch-password
+        ports:
+        - containerPort: 5601
+        resources:
+          requests:
+            memory: "4Gi"  # 메모리 요청량
+          limits:
+            memory: "4Gi"  # 메모리 제한
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kibana
+  name: kibana-svc
+  namespace: elastic
+spec:
+  ports:
+  - nodePort: 30561
+    port: 5601
+    protocol: TCP
+    targetPort: 5601
+  selector:
+    app: kibana
+  type: LoadBalancer
