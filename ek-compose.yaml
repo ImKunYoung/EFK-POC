@@ -1,0 +1,45 @@
+version: '2.2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.1
+    container_name: es01
+    ports:
+      - "9200:9200"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    mem_limit: 2g
+    cap_add:
+      - IPC_LOCK
+    networks:
+      - elastic
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - bootstrap.memory_lock=true
+      - cluster.initial_master_nodes=es01
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+      - TZ=Asia/Seoul
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.8.1
+    container_name: kib01
+    links:
+      - "elasticsearch"
+    ports:
+      - 5601:5601
+    environment:
+      TZ: "Asia/Seoul"
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: http://es01:9200
+    networks:
+      - elastic
+
+networks:
+  elastic:
+    driver: bridge
