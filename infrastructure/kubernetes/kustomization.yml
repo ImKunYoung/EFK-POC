@@ -1,0 +1,12 @@
+commonLabels:
+  app.kubernetes.io/genereted-by: JHipster
+
+resources:
+  # Individual apps
+  - efkpoc-k8s/efkpoc-deployment.yml
+  - efkpoc-k8s/efkpoc-service.yml
+  - efkpoc-k8s/efkpoc-mariadb.yml
+  - efkpoc-k8s/jwt-secret.yml
+# service discovery eureka/consul
+
+patchesJson6902:

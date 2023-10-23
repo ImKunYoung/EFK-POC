@@ -1,28 +1,78 @@
-name: Application CI
+name: Build and Push Docker image
 on: [push, pull_request]
+
+env:
+  REGISTRY: ghcr.io
+  REPO_NAME: ImKunYoung/EFK-POC
+  MANIFEST_PATH: infrastructure/kubernetes/efkpoc-k8s/efkpoc-deployment.yml
+  GIT_EMAIL: github-action-bot@example.com
+  GIT_NAME: Product Server Action Bot
+
 jobs:
-  pipeline:
-    name: EFKPOC pipeline
+  build:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.pull_request.title, '[skip ci]') && !contains(github.event.pull_request.title, '[ci skip]')"
-    timeout-minutes: 40
-    env:
-      SPRING_OUTPUT_ANSI_ENABLED: DETECT
-      SPRING_JPA_SHOW_SQL: false
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
+      - name: 체크아웃
+        uses: actions/checkout@v2
+
+      - name: Java 11 설치
+        uses: actions/setup-java@v2
         with:
-          distribution: 'temurin'
-          java-version: 11
-      - name: Make gradlew executable
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Maven 캐시
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Docker 로그인
+        run: echo ${{ secrets.GTOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: 릴리즈 이름 생성
+        id: release_name
+        run: echo "::set-output name=release_name::v-$(date +'%Y.%m.%d-%H%M%S')"
+
+      - name: Build with Maven
+        run: mvn clean install
+
+      - name: Build and push Docker image
+        run: mvn package -DskipTests jib:build -Dimage=ghcr.io/imkunyoung/efk-poc:dev-${{ steps.release_name.outputs.release_name }}
+
+      - name: 인프라스트럭처 레포지토리 체크아웃
+        uses: actions/checkout@v2
+        with:
+          repository: imkunyoung/EFK-POC
+          token: ${{ secrets.GTOKEN }}
+          path: EFK-POC
+
+      - name: 쿠버네티스 디플로이먼트에 도커 이미지 태그 업데이트
         run: |
-          chmod +x mvnw
-      - name: Package application
-        run: run java:jar:prod
-      - name: Build and publish docker image
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+          IMAGE_TAG="$REGISTRY/$REPO_NAME:dev-${{ steps.release_name.outputs.release_name }}"
+          sed -i "s|$REGISTRY/$REPO_NAME:[a-zA-Z0-9\.\-]*|$IMAGE_TAG|" EFK-POC/$MANIFEST_PATH
+
+      - name: 인프라스트럭처 레포지토리에 커밋 및 푸시
         run: |
-          GIT_TAG=:${GITHUB_REF#refs/tags/}
-          DOCKER_TAG=${GIT_TAG#:refs/heads/main}
-          ./mvnw -ntp jib:build -Djib.to.image=ghcr.io/imkunyoung/efk-poc${DOCKER_TAG} -Djib.to.auth.username="${{secrets.DOCKER_USERNAME }}" -Djib.to.auth.password="${{secrets.DOCKER_PASSWORD }}" -Pdev
+          cd EFK-POC
+          git config --global user.email "$GIT_EMAIL"
+          git config --global user.name "$GIT_NAME"
+          git add $MANIFEST_PATH
+          git commit -m "Update $REPO_NAME image tag to ${{ steps.release_name.outputs.release_name }}"
+          git push
+
+      - name: GitHub 릴리즈 생성
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.release_name.outputs.release_name }}
+          release_name: Release ${{ steps.release_name.outputs.release_name }}
+          generateReleaseNotes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GTOKEN }}
+
+      - name: 정리 작업
+        run: docker logout $REGISTRY

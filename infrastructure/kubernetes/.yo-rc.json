@@ -1,0 +1,17 @@
+{
+  "generator-jhipster": {
+    "appsFolders": ["EFK-POC"],
+    "clusteredDbApps": {},
+    "directoryPath": "../../../",
+    "dockerPushCommand": "docker push",
+    "dockerRepositoryName": "ghcr.io/imkunyoung/efk-poc",
+    "ingressDomain": "",
+    "istio": false,
+    "jwtSecretKey": "MWJkODE1NTZmMTAzN2VjMTI3NjBjZjAyNGI4OWEwOGFhZWUyYjQxMTMxODY1ZTFlMTgzNTM4ZjE4Y2E4NDdlYjVhMzVjN2Y0ODBiNzc3OGMyMTE0MTc5MWE4ZTZlNzQ0Y2VlOQ==",
+    "kubernetesNamespace": "default",
+    "kubernetesServiceType": "LoadBalancer",
+    "kubernetesUseDynamicStorage": false,
+    "monitoring": "no",
+    "serviceDiscoveryType": false
+  }
+}
