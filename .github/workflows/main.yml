@@ -18,8 +18,6 @@ jobs:
       - name: Make gradlew executable
         run: |
           chmod +x mvnw
-      - name: Package application
-        run: run java:jar:prod
       - name: Build and publish docker image
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
         run: |
