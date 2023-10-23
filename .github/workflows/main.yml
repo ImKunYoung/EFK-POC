@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 env:
   REGISTRY: ghcr.io
-  REPO_NAME: imkunyoung/EFK-POC
+  REPO_NAME: ImKunYoung/EFK-POC
   MANIFEST_PATH: infrastructure/kubernetes/efkpoc-k8s/efkpoc-deployment.yml
   GIT_EMAIL: github-action-bot@example.com
   GIT_NAME: Product Server Action Bot
