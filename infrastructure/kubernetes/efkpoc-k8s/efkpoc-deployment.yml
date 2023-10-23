@@ -15,18 +15,6 @@ spec:
         app: efkpoc
         version: 'v1'
     spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - podAffinityTerm:
-                labelSelector:
-                  matchExpressions:
-                    - key: app
-                      operator: In
-                      values:
-                        - efkpoc
-                topologyKey: kubernetes.io/hostname
-              weight: 100
       containers:
         - name: efkpoc-app
           image: ghcr.io/imkunyoung/efk-poc/efkpoc
