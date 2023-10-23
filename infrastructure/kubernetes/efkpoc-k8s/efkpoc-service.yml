@@ -6,6 +6,7 @@ metadata:
   labels:
     app: efkpoc
 spec:
+  type: LoadBalancer
   selector:
     app: efkpoc
   ports:
