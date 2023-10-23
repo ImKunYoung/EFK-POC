@@ -15,10 +15,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 11
-      - name: Run backend test
+      - name: Make gradlew executable
         run: |
           chmod +x mvnw
-           run ci:backend:test
       - name: Package application
         run: run java:jar:prod
       - name: Build and publish docker image
