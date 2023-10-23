@@ -40,7 +40,7 @@ jobs:
         run: mvn clean install
 
       - name: Build and push Docker image
-        run: mvn package -DskipTests jib:build -Dimage=docker.io/imkunyoung/efk-poc:dev-${{ steps.release_name.outputs.release_name }}"
+        run: mvn package -DskipTests jib:build -Dimage=docker.io/imkunyoung/efk-poc:dev-${{ steps.release_name.outputs.release_name }}
 
       - name: 인프라스트럭처 레포지토리 체크아웃
         uses: actions/checkout@v2
